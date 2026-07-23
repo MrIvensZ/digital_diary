@@ -8,11 +8,12 @@ from tkinter.scrolledtext import ScrolledText
 class Gui:
     def __init__(self, db):
         self.db = db
+        self.actual_frame = None
         # === настройка окна ===
         self.window = tk.Tk()  # окно
         self.window.title('Digital Diary')
         self.window.geometry('1024x768')
-        self.window.iconbitmap(default='fav.ico')
+        # self.window.iconbitmap(default='fav.ico')
 
         self.main_frame = ttk.Frame(self.window)
         self.main_frame.pack(fill='both', expand=True)
@@ -88,6 +89,7 @@ class Gui:
         # кнопка для удаления
         delete_btn = ttk.Button(r_frame, text='Удалить запись')
         delete_btn.pack(side='right', fill='x', expand=True)
+        self.actual_frame = r_frame
         return r_frame, entry_id, entry_theme, entry_date, entry_text, update_btn, delete_btn
 
     def add_frame_show(self):
@@ -123,6 +125,7 @@ class Gui:
             command=lambda: text_area.delete('1.0', 'end')
             )
         clear_btn.pack(side='right', fill='x', expand=True)
+        self.actual_frame = a_frame
         return a_frame
 
     def update_frame_show(self):
@@ -152,10 +155,11 @@ class Gui:
 
         cancel_btn = ttk.Button(u_frame, text='Отмена', command=cancel_update)
         cancel_btn.pack(side='right', fill='x', expand=True)
+        self.actual_frame = u_frame
         return u_frame, u_theme_area, u_text_area, u_btn
 
     def read_button(self, entry_id, entry_theme, entry_date, entry_text, r_frame, id, theme, date, text):
-        self.a_frame.pack_forget()
+        self.actual_frame.pack_forget()
         entry_id.configure(text=f'Запись № {id}')
         entry_theme.configure(text=theme)
         entry_date.configure(text=date)
@@ -178,8 +182,10 @@ class Gui:
     def update_button(self, r_frame, u_frame, u_theme_area, u_text_area, entry_theme, entry_text):
         r_frame.pack_forget()
         u_frame.pack(side='right', padx=(10, 5), pady=5, fill='both', expand=True)
-        u_theme_area.insert(0, entry_theme.cget('text'))
-        u_text_area.insert(1.0, entry_text.cget('text'))
+        if u_theme_area.get() == '':
+            u_theme_area.insert(0, entry_theme.cget('text'))
+        if u_text_area.get(1.0, 'end') == '\n':
+            u_text_area.insert(1.0, entry_text.cget('text'))
 
     def update_confirm(self, entry_id, u_theme_area, u_text_area, u_frame):
         id = int(entry_id.cget('text').removeprefix('Запись № '))
