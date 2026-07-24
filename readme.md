@@ -31,7 +31,7 @@
 git clone https://github.com/MrIvensZ/digital_diary.git
 
 cd digital_diary
-#### Перейдите в директорию Movie_bot
+#### Перейдите в директорию digital_diary
 ```
 ### 2. Настройка виртуального окружения
 ```
