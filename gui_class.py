@@ -13,7 +13,7 @@ class Gui:
         self.window = tk.Tk()  # окно
         self.window.title('Digital Diary')
         self.window.geometry('1024x768')
-        # self.window.iconbitmap(default='fav.ico')
+        self.window.iconbitmap(default='fav.ico')
 
         self.main_frame = ttk.Frame(self.window)
         self.main_frame.pack(fill='both', expand=True)
@@ -29,15 +29,15 @@ class Gui:
         self.content_frame.pack(fill='both', expand=True)
 
         # == контейнер для списка записей ==
-        self.mother = ttk.Frame(self.content_frame, borderwidth=1, relief='solid')
-        self.mother.pack(side='left', padx=5, pady=5, fill='both', expand=True)
+        self.entrys_panel = ttk.Frame(self.content_frame, borderwidth=1, relief='solid')
+        self.entrys_panel.pack(side='left', padx=5, pady=5, fill='both', expand=True)
         # canvas для прокрутки
-        self.canvas = tk.Canvas(self.mother)
+        self.canvas = tk.Canvas(self.entrys_panel)
         self.canvas.bind("<Configure>", self.configure_frame)
         self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
         self.canvas.pack(side='left', fill='both', expand=True, padx=(3, 0), pady=3)
         # скроллбар
-        self.scrollbar = ttk.Scrollbar(self.mother, orient='vertical', command=self.canvas.yview)
+        self.scrollbar = ttk.Scrollbar(self.entrys_panel, orient='vertical', command=self.canvas.yview)
         self.scrollbar.pack(side='right', fill='y', pady=5, padx=(10, 5))
         self.canvas['yscrollcommand'] = self.scrollbar.set
 
@@ -61,7 +61,7 @@ class Gui:
         # self.a_frame = self.add_frame_show()
         self.show_list_entrys()
 
-    def read_frame_show(self):
+    def read_frame(self):
         # == контейнер для чтения записи ==
         r_frame = ttk.Frame(self.content_frame, borderwidth=1, relief='solid')
 
@@ -89,13 +89,12 @@ class Gui:
         # кнопка для удаления
         delete_btn = ttk.Button(r_frame, text='Удалить запись')
         delete_btn.pack(side='right', fill='x', expand=True)
-        self.actual_frame = r_frame
         return r_frame, entry_id, entry_theme, entry_date, entry_text, update_btn, delete_btn
 
-    def add_frame_show(self):
+    def add_frame(self):
         # == контейнер для добавления записи ==
         a_frame = ttk.Frame(self.content_frame, borderwidth=1, relief='solid')
-        a_frame.pack(side='right', padx=(10, 5), pady=5, fill='both', expand=True)
+        # a_frame.pack(side='right', padx=(10, 5), pady=5, fill='both', expand=True)
         # надпись для поля темы
         theme_label = ttk.Label(a_frame, text='Тема:')
         theme_label.pack(anchor='nw', padx=10, pady=(5, 0))
@@ -125,10 +124,10 @@ class Gui:
             command=lambda: text_area.delete('1.0', 'end')
             )
         clear_btn.pack(side='right', fill='x', expand=True)
-        self.actual_frame = a_frame
+        # self.actual_frame = a_frame
         return a_frame
 
-    def update_frame_show(self):
+    def update_frame(self):
         # == контейнер для редактирования записи ==
         u_frame = ttk.Frame(self.content_frame, borderwidth=1, relief='solid')
         # надпись для поля темы
@@ -155,16 +154,17 @@ class Gui:
 
         cancel_btn = ttk.Button(u_frame, text='Отмена', command=cancel_update)
         cancel_btn.pack(side='right', fill='x', expand=True)
-        self.actual_frame = u_frame
         return u_frame, u_theme_area, u_text_area, u_btn
 
     def read_button(self, entry_id, entry_theme, entry_date, entry_text, r_frame, id, theme, date, text):
-        self.actual_frame.pack_forget()
+        if self.actual_frame:
+            self.actual_frame.pack_forget()
         entry_id.configure(text=f'Запись № {id}')
         entry_theme.configure(text=theme)
         entry_date.configure(text=date)
         entry_text.configure(text=text)
         r_frame.pack(side='right', padx=(10, 5), pady=5, fill='both', expand=True)
+        self.actual_frame = r_frame
 
     def update_list_frame(self):
         # в цикле удаляем все виджеты записей
@@ -199,8 +199,8 @@ class Gui:
     def show_list_entrys(self):
         # функция отрисовки всех записей из БД
         entrys = self.db.get_all_entrys()
-        r_frame, entry_id, entry_theme, entry_date, entry_text, update_btn, delete_btn = self.read_frame_show()
-        u_frame, u_theme_area, u_text_area, ok_btn = self.update_frame_show()
+        r_frame, entry_id, entry_theme, entry_date, entry_text, update_btn, delete_btn = self.read_frame()
+        u_frame, u_theme_area, u_text_area, ok_btn = self.update_frame()
 
         def action_delete():
             self.delete_button(r_frame, entry_id)
@@ -241,8 +241,11 @@ class Gui:
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def new_entry(self):
-        a_frame = self.add_frame_show()
+        if self.actual_frame:
+            self.actual_frame.pack_forget()
+        a_frame = self.add_frame()
         a_frame.pack(side='right', padx=(10, 5), pady=5, fill='both', expand=True)
+        self.actual_frame = a_frame
 
     def run(self):
         self.window.mainloop()
